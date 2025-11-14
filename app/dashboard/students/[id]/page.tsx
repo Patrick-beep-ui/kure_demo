@@ -9,56 +9,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Phone, Mail, Calendar, AlertTriangle, Edit } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, AlertTriangle, Edit, User } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
 
 export default function StudentDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
-  const [consultations, setConsultations] = useState<Consultation[]>([])
-  const [chronicConditions, setChronicConditions] = useState<ChronicCondition[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (params.id) {
-      fetchStudentDetails()
-    }
+    if (params.id) fetchStudent()
   }, [params.id])
 
-  const fetchStudentDetails = async () => {
+  const fetchStudent = async () => {
     try {
-      const [studentData, consultationsResponse, conditionsResponse] = await Promise.all([
-        clinicApi.getStudent(Number(params.id)),
-        clinicApi.getConsultations(),
-        clinicApi.getChronicConditions(),
-      ])
-  
-      console.log("Fetched student data:", studentData)
-      console.log("Fetched all consultations:", consultationsResponse)
-      console.log("Fetched all chronic conditions:", conditionsResponse)
-  
-      // Extract .data from the API responses that return paginated lists
-      const consultationsData = consultationsResponse.data || []
-      const conditionsData = conditionsResponse.data || []
-  
-      const studentConsultations = consultationsData.filter(
-        (c) => c.student_id === Number(params.id)
-      )
-      const studentConditions = conditionsData.filter(
-        (c) => c.student_id === Number(params.id)
-      )
-  
-      setStudent(studentData)
-      setConsultations(studentConsultations)
-      setChronicConditions(studentConditions)
+      const data = await clinicApi.getStudent(Number(params.id))
+      setStudent(data)
     } catch (error) {
       console.error("Failed to fetch student details:", error)
     } finally {
       setIsLoading(false)
     }
   }
-  
 
   if (isLoading) {
     return (
@@ -71,32 +45,60 @@ export default function StudentDetailPage() {
 
   if (!student) {
     return (
-      <div className="space-y-6">
-        <Alert variant="destructive">
-          <AlertDescription>Student not found</AlertDescription>
-        </Alert>
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>Student not found</AlertDescription>
+      </Alert>
     )
   }
 
+  // First personal phone number
+  const personalPhone = student.contact_numbers?.find(c => c.type === "personal")?.phone_number
+  const emergencyPhone = student.contact_numbers?.find(c => c.type === "emergencia")?.phone_number
+
+  // All medications from consultations
+  const allMedications = student.consultations.flatMap(c => c.consultation_medications || [])
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      {/* Header */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="size-4" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {student.first_name} {student.last_name}
-          </h1>
-          <p className="text-muted-foreground">Student ID: {student.student_id}</p>
+
+        <div className="flex flex-col items-center gap-4">
+          {student.profile_pic_url ? (
+            <Image
+              src={student.profile_pic_url}
+              alt={`${student.first_name} ${student.last_name}`}
+              width={160}
+              height={160}
+              className="rounded-lg object-cover"
+            />
+          ) : (
+            <div className="flex h-40 w-40 items-center justify-center rounded-lg bg-muted">
+              <User className="h-20 w-20 text-muted-foreground" />
+            </div>
+          )}
         </div>
-        <Button>
-          <Edit className="mr-2 size-4" />
-          Edit Profile
-        </Button>
+
+        <div className="flex-1 h-full">
+          <div className="flex h-full items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {student.first_name} {student.last_name}
+              </h1>
+              <p className="text-muted-foreground">Student ID: {student.ku_id}</p>
+            </div>
+            <Button>
+              <Edit className="mr-2 size-4" />
+              Edit Profile
+            </Button>
+          </div>
+        </div>
       </div>
 
+      {/* Info Cards */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -105,15 +107,15 @@ export default function StudentDetailPage() {
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
               <Mail className="size-4 text-muted-foreground" />
-              <span className="text-sm">{student.email}</span>
+              <span className="text-sm">{student.ku_email}</span>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="size-4 text-muted-foreground" />
-              <span className="text-sm">{student.phone}</span>
+              <span className="text-sm">{personalPhone || "-"}</span>
             </div>
             <div className="flex items-center gap-3">
               <Calendar className="size-4 text-muted-foreground" />
-              <span className="text-sm">{new Date(student.date_of_birth).toLocaleDateString()}</span>
+              <span className="text-sm">{new Date(student.dob).toLocaleDateString()}</span>
             </div>
           </CardContent>
         </Card>
@@ -124,24 +126,9 @@ export default function StudentDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Gender</span>
-              <Badge variant="outline" className="capitalize">
-                {student.gender}
-              </Badge>
+              <span className="text-sm text-muted-foreground">Program</span>
+              <Badge variant="outline">{student.program?.program_name}</Badge>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Blood Type</span>
-              <Badge variant="outline">{student.blood_type || "Unknown"}</Badge>
-            </div>
-            {student.allergies && (
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="size-4 text-orange-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium">Allergies</p>
-                  <p className="text-sm text-muted-foreground">{student.allergies}</p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -151,13 +138,14 @@ export default function StudentDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-sm font-medium">{student.emergency_contact_name || "Not provided"}</p>
+              <p className="text-sm font-medium">{emergencyPhone || "Not provided"}</p>
               <p className="text-sm text-muted-foreground">{student.emergency_contact_phone || "-"}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="consultations" className="space-y-4">
         <TabsList>
           <TabsTrigger value="consultations">Consultations</TabsTrigger>
@@ -165,103 +153,113 @@ export default function StudentDetailPage() {
           <TabsTrigger value="medications">Medications</TabsTrigger>
         </TabsList>
 
+        {/* Consultations */}
         <TabsContent value="consultations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Consultation History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {consultations.length === 0 ? (
-                <p className="py-8 text-center text-muted-foreground">No consultations recorded</p>
-              ) : (
-                <div className="space-y-4">
-                  {consultations.map((consultation) => (
-                    <div key={consultation.id} className="rounded-lg border p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <p className="font-medium">{consultation.chief_complaint}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(consultation.consultation_date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge
-                          variant={
-                            consultation.status === "completed"
-                              ? "secondary"
-                              : consultation.status === "in-progress"
-                                ? "default"
-                                : "outline"
-                          }
-                        >
-                          {consultation.status}
-                        </Badge>
-                      </div>
-                      {consultation.diagnosis && (
-                        <div className="mt-3">
-                          <p className="text-sm font-medium">Diagnosis:</p>
-                          <p className="text-sm text-muted-foreground">{consultation.diagnosis}</p>
-                        </div>
-                      )}
+          {student.consultations.length === 0 ? (
+            <p className="py-8 text-center text-muted-foreground">No consultations recorded</p>
+          ) : (
+            <div className="space-y-4">
+              {student.consultations.map((consultation) => (
+                <Card key={consultation.id} className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium">{consultation.reason}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(consultation.date).toLocaleDateString()} {consultation.start_time} - {consultation.end_time}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+
+                  {consultation.diagnosis && (
+                    <div className="mt-2">
+                      <p className="text-sm font-medium">Diagnosis:</p>
+                      <p className="text-sm text-muted-foreground">{consultation.diagnosis}</p>
+                    </div>
+                  )}
+
+                  {consultation.consultation_medications?.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm font-medium">Medications:</p>
+                      <ul className="ml-4 list-disc text-sm text-muted-foreground">
+                        {consultation.consultation_medications.map((cm) => (
+                          <li key={cm.id}>
+                            {cm.medication.name} - {cm.quantity} {cm.medication.unit} ({cm.medication.dosage}) | {cm.instructions}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="chronic-conditions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Chronic Conditions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chronicConditions.length === 0 ? (
-                <p className="py-8 text-center text-muted-foreground">No chronic conditions recorded</p>
-              ) : (
-                <div className="space-y-4">
-                  {chronicConditions.map((condition) => (
-                    <div key={condition.id} className="rounded-lg border p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <p className="font-medium">{condition.condition_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Diagnosed: {new Date(condition.diagnosed_date).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge
-                          variant={
-                            condition.severity === "severe"
-                              ? "destructive"
-                              : condition.severity === "moderate"
-                                ? "default"
-                                : "secondary"
-                          }
-                        >
-                          {condition.severity}
-                        </Badge>
-                      </div>
-                      {condition.current_medications && (
-                        <div className="mt-3">
-                          <p className="text-sm font-medium">Current Medications:</p>
-                          <p className="text-sm text-muted-foreground">{condition.current_medications}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+      {/* Chronic Conditions */}
+      <TabsContent value="chronic-conditions" className="space-y-4">
+        {student.conditions.length === 0 ? (
+          <p className="py-8 text-center text-muted-foreground">
+            No chronic conditions recorded
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {student.conditions.map((condition) => (
+              <Card key={condition.id} className="p-4">
+                {/* Header: Condition Name & Type */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-semibold">{condition.condition.condition_name}</p>
+                    <Badge variant="outline" className="capitalize">
+                      {condition.condition.condition_type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Start: {new Date(condition.start_date).toLocaleDateString()}
+                  </p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
+                {/* Description */}
+                {condition.condition.condition_description && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Description:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {condition.condition.condition_description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {condition.notes && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Notes:</p>
+                    <p className="text-sm text-muted-foreground">{condition.notes}</p>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+      </TabsContent>
+
+
+        {/* Medications */}
         <TabsContent value="medications" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Medication History</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="py-8 text-center text-muted-foreground">No medications dispensed yet</p>
+              {allMedications.length === 0 ? (
+                <p className="py-8 text-center text-muted-foreground">No medications dispensed yet</p>
+              ) : (
+                <ul className="list-disc ml-4 text-sm text-muted-foreground">
+                  {allMedications.map((cm) => (
+                    <li key={cm.id}>
+                      {cm.medication.name} - {cm.quantity} {cm.medication.unit} ({cm.dosage}) | {cm.instructions}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -176,9 +176,10 @@ export const clinicApi = {
 
   // Students
   getStudents: (params?: { search?: string; page?: number }) =>
-    USE_MOCK_DATA ? mockApi.getStudents(params) : apiService.get(`/students?${new URLSearchParams(params as any)}`),
+    //USE_MOCK_DATA ? mockApi.getStudents(params) : 
+  apiService.get(`/students?${new URLSearchParams(params as any)}`),
 
-  getStudent: (id: number) => (USE_MOCK_DATA ? mockApi.getStudent(id) : apiService.get(`/students/${id}`)),
+  getStudent: (id: number) => /*(USE_MOCK_DATA ? mockApi.getStudent(id) :*/ apiService.get(`/students/${id}`),
 
   createStudent: (data: any) => (USE_MOCK_DATA ? mockApi.createStudent(data) : apiService.post("/students", data)),
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { clinicApi } from "@/lib/api-service"
 import type { Student } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -35,14 +35,14 @@ export default function StudentsPage() {
         (student) =>
           student.first_name.toLowerCase().includes(query) ||
           student.last_name.toLowerCase().includes(query) ||
-          student.student_id.toLowerCase().includes(query) ||
-          student.email.toLowerCase().includes(query),
+          student.ku_id.toLowerCase().includes(query) ||
+          student.ku_email.toLowerCase().includes(query),
       )
       setFilteredStudents(filtered)
     }
   }, [searchQuery, students])
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setError("")
       const response = await clinicApi.getStudents()
@@ -54,7 +54,7 @@ export default function StudentsPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, []);
 
   const handleStudentAdded = () => {
     setIsAddDialogOpen(false)
@@ -123,33 +123,33 @@ export default function StudentsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Nombre</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Blood Type</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Celular</TableHead>
+                    <TableHead>Programa</TableHead>
+                    <TableHead>Residencia</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredStudents.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.student_id}</TableCell>
+                      <TableCell className="font-medium">{student.ku_id}</TableCell>
                       <TableCell>
                         {student.first_name} {student.last_name}
                       </TableCell>
-                      <TableCell>{student.email}</TableCell>
-                      <TableCell>{student.phone}</TableCell>
+                      <TableCell>{student.ku_email}</TableCell>
+                      <TableCell>{student.contact_numbers?.[0]?.phone_number ?? "N/A"}</TableCell>
                       <TableCell>
-                        {student.blood_type ? (
-                          <Badge variant="outline">{student.blood_type}</Badge>
+                        {student.program ? (
+                          <Badge variant="outline">{student.program.program_name}</Badge>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">Active</Badge>
+                        <Badge variant="secondary">{student.residence}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

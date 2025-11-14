@@ -5,9 +5,11 @@ export interface Student {
   student_id: string
   first_name: string
   last_name: string
-  email: string
+  ku_email: string
   phone: string
+  ku_id: string
   date_of_birth: string
+  residence: string
   gender: "male" | "female" | "other"
   blood_type?: string
   allergies?: string
