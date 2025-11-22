@@ -188,6 +188,10 @@ export const clinicApi = {
 
   deleteStudent: (id: number) => (USE_MOCK_DATA ? mockApi.deleteStudent(id) : apiService.delete(`/students/${id}`)),
 
+  // ----------- Programs ------------
+  getPrograms: () =>
+    apiService.get("/programs"),
+
   // Appointments
   getAppointments: (params?: { status?: string; date?: string }) =>
     USE_MOCK_DATA

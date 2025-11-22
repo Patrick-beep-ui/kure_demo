@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { clinicApi } from "@/lib/api-service"
-import type { Student } from "@/lib/types"
+import type { Student, Program } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { Plus, Search, Eye, Edit, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AddStudentForm } from "@/components/students/add-student-form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
@@ -28,6 +29,11 @@ export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const debounceRef = useRef<number | null>(null)
 
+    // filters
+    const [residenceFilter, setResidenceFilter] = useState("all")
+    const [programFilter, setProgramFilter] = useState("all")
+    const [programs, setPrograms] = useState<Program[]>([])
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [error, setError] = useState("")
 
@@ -35,7 +41,11 @@ export default function StudentsPage() {
     setIsLoading(true)
     try {
       setError("")
-      const res = await clinicApi.getStudents({ page, search })
+      const res = await clinicApi.getStudents({ 
+        page, 
+        search, 
+        residence: residenceFilter === "all" ? "" : residenceFilter, 
+        program_id: programFilter === "all" ? "" : programFilter })
 
       setStudents(res.data || [])
       setCurrentPage(res.current_page)
@@ -48,7 +58,17 @@ export default function StudentsPage() {
     }
   }
 
+  const fetchPrograms = async () => {
+    try {
+      const res = await clinicApi.getPrograms()
+      setPrograms(res || [])
+    } catch (err) {
+      console.error("Failed to fetch programs")
+    }
+  }
+
   useEffect(() => {
+    fetchPrograms()
     fetchStudents(1, "")
   }, [])
 
@@ -64,7 +84,7 @@ export default function StudentsPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [searchInput])
+  }, [searchInput, residenceFilter, programFilter])
 
   useEffect(() => {
     fetchStudents(currentPage, searchQuery)
@@ -134,20 +154,51 @@ export default function StudentsPage() {
 
       {/* SEARCH */}
       <Card>
-        <CardHeader>
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre, ID o email..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10"
-            />
+        <CardHeader className="flex flex-col gap-4">
+          {/* SEARCH + FILTERS */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, ID o email..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              <Select value={residenceFilter} onValueChange={setResidenceFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Residencia" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="interno">Internos</SelectItem>
+                  <SelectItem value="externo">Externos</SelectItem>
+                  <SelectItem value="aquinas">Aquinas</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={programFilter} onValueChange={setProgramFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Programa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {programs.map((prog) => (
+                    <SelectItem key={prog.id} value={String(prog.id)}>
+                      {prog.program_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-        {/* PAGINATION */}
-        <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-2">
+          {/* PAGINATION */}
+          <div className="flex items-center justify-between mt-4 flex-wrap w-full">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -167,12 +218,13 @@ export default function StudentsPage() {
               </Button>
             </div>
 
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground mt-2 md:mt-0">
               Página {currentPage} - {lastPage} · {total} resultados
             </div>
           </div>
-
         </CardHeader>
+
+
 
         <CardContent>
           {error && (
