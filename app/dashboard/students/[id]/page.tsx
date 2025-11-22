@@ -9,15 +9,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Phone, Mail, Calendar, AlertTriangle, Edit, User } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, AlertTriangle, Edit, User, Plus } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from "next/image"
+import { AddConsultationModal } from "@/components/consultations/add-consultation-modal"
+import { AddChronicConditionModal } from "@/components/chronic-conditions/add-chronic-condition-modal"
+import { DispenseMedicationModal } from "@/components/medications/dispense-medication-modal"
 
 export default function StudentDetailPage() {
   const params = useParams()
   const router = useRouter()
   const [student, setStudent] = useState<Student | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const [showConsultationModal, setShowConsultationModal] = useState(false)
+  const [showConditionModal, setShowConditionModal] = useState(false)
+  const [showMedicationModal, setShowMedicationModal] = useState(false)
 
   useEffect(() => {
     if (params.id) fetchStudent()
@@ -159,14 +166,22 @@ export default function StudentDetailPage() {
             <p className="py-8 text-center text-muted-foreground">No consultations recorded</p>
           ) : (
             <div className="space-y-4">
+              <Button
+              size="sm"
+              onClick={() => setShowConsultationModal(true)}
+            >
+              <Plus className="mr-2 size-4" />
+              Nueva Consulta
+            </Button>
               {student.consultations.map((consultation) => (
                 <Card key={consultation.id} className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="font-medium">{consultation.reason}</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(consultation.date).toLocaleDateString()} {consultation.start_time} - {consultation.end_time}
+                        {new Date(consultation.date).toLocaleDateString()} | {consultation.start_time} - {consultation.end_time}
                       </p>
+                      <Badge variant="outline" className="mt-2">{consultation.type}</Badge>
                     </div>
                   </div>
 
@@ -203,6 +218,13 @@ export default function StudentDetailPage() {
           </p>
         ) : (
           <div className="space-y-4">
+            <Button
+              size="sm"
+              onClick={() => setShowConditionModal(true)}
+            >
+              <Plus className="mr-2 size-4" />
+              Nueva Condición
+            </Button>
             {student.conditions.map((condition) => (
               <Card key={condition.id} className="p-4">
                 {/* Header: Condition Name & Type */}
@@ -244,6 +266,13 @@ export default function StudentDetailPage() {
 
         {/* Medications */}
         <TabsContent value="medications" className="space-y-4">
+        <Button
+              size="sm"
+              onClick={() => setShowMedicationModal(true)}
+            >
+              <Plus className="mr-2 size-4" />
+              Nueva Medicina
+          </Button>
           <Card>
             <CardHeader>
               <CardTitle>Medication History</CardTitle>
@@ -255,15 +284,39 @@ export default function StudentDetailPage() {
                 <ul className="list-disc ml-4 text-sm text-muted-foreground">
                   {allMedications.map((cm) => (
                     <li key={cm.id}>
-                      {cm.medication.name} - {cm.quantity} {cm.medication.unit} ({cm.dosage}) | {cm.instructions}
+                      {cm.medication.name} - {cm.quantity} {cm.medication.dosage} ({cm.medication.unit}) | {cm.instructions}
                     </li>
-                  ))}
+                  ))} 
                 </ul>
               )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {student && (
+        <>
+          <AddConsultationModal
+            studentId={student.id}
+            isOpen={showConsultationModal}
+            onOpenChange={setShowConsultationModal}
+            onSuccess={fetchStudent}
+          />
+          <AddChronicConditionModal
+            studentId={student.id}
+            isOpen={showConditionModal}
+            onOpenChange={setShowConditionModal}
+            onSuccess={fetchStudent}
+          />
+          <DispenseMedicationModal
+            studentId={student.id}
+            isOpen={showMedicationModal}
+            onOpenChange={setShowMedicationModal}
+            onSuccess={fetchStudent}
+          />
+        </>
+      )}
+
     </div>
   )
 }

@@ -52,13 +52,13 @@ class ApiService {
     if (!response.ok) {
       try {
         const error: ApiError = await response.json()
-        console.error("[v0] API Error:", error)
+        console.error("API Error:", error.message, error.errors)
         throw new Error(error.message || `Request failed with status ${response.status}`)
       } catch (e) {
         if (e instanceof Error && e.message.includes("connect to the backend")) {
           throw e
         }
-        console.error("[v0] Failed to parse error response:", e)
+        console.error("Failed to parse error response:", e)
         throw new Error(`Request failed with status ${response.status}`)
       }
     }
@@ -181,7 +181,7 @@ export const clinicApi = {
 
   getStudent: (id: number) => /*(USE_MOCK_DATA ? mockApi.getStudent(id) :*/ apiService.get(`/students/${id}`),
 
-  createStudent: (data: any) => (USE_MOCK_DATA ? mockApi.createStudent(data) : apiService.post("/students", data)),
+  createStudent: (data: any) => (/*USE_MOCK_DATA ? mockApi.createStudent(data) :*/ apiService.post("/students", data)),
 
   updateStudent: (id: number, data: any) =>
     USE_MOCK_DATA ? mockApi.updateStudent(id, data) : apiService.put(`/students/${id}`, data),
@@ -210,12 +210,17 @@ export const clinicApi = {
       : apiService.get(`/consultations?${new URLSearchParams(params as any)}`),
 
   createConsultation: (data: any) =>
-    USE_MOCK_DATA ? mockApi.createConsultation(data) : apiService.post("/consultations", data),
+    /*USE_MOCK_DATA ? mockApi.createConsultation(data) :*/ apiService.post("/consultations", data),
 
   getConsultation: (id: number) =>
     USE_MOCK_DATA ? mockApi.getConsultation(id) : apiService.get(`/consultations/${id}`),
 
+  // Medications
+  getMedications: (params?: { search?: string; controlled?: boolean }) =>
+    apiService.get(`/medications?${new URLSearchParams(params as any)}`),
+
   // Inventory
+
   getInventory: (params?: { search?: string; status?: string }) =>
     USE_MOCK_DATA ? mockApi.getInventory(params) : apiService.get(`/inventory?${new URLSearchParams(params as any)}`),
 
@@ -228,14 +233,18 @@ export const clinicApi = {
   deleteMedication: (id: number) =>
     USE_MOCK_DATA ? mockApi.deleteMedication(id) : apiService.delete(`/inventory/${id}`),
 
-  // Chronic Conditions
+  // ----------- Conditions ------------
+  
+  getConditions: (params? : { search?: string; }) =>
+    apiService.get(`/conditions?${new URLSearchParams(params as any)}`),
+
+  createChronicCondition: (data: any) =>
+    apiService.post("/conditions", data),
+
   getChronicConditions: (params?: { student_id?: number }) =>
     USE_MOCK_DATA
       ? mockApi.getChronicConditions(params)
       : apiService.get(`/chronic-conditions?${new URLSearchParams(params as any)}`),
-
-  createChronicCondition: (data: any) =>
-    USE_MOCK_DATA ? mockApi.createChronicCondition(data) : apiService.post("/chronic-conditions", data),
 
   updateChronicCondition: (id: number, data: any) =>
     USE_MOCK_DATA ? mockApi.updateChronicCondition(id, data) : apiService.put(`/chronic-conditions/${id}`, data),
