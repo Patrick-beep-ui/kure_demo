@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { apiService } from "@/lib/api-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,29 +15,63 @@ interface AddStudentFormProps {
   onSuccess: () => void
 }
 
+interface MedicationData {
+  medication_id: string
+  schedule?: string
+  duration?: string
+}
+
+interface ConditionData {
+  condition_name: string
+  condition_type: string
+  condition_description?: string
+  start_date?: string
+  end_date?: string
+  notes?: string
+  medications?: MedicationData[]
+}
+
+interface ContactNumberData {
+  phone_number: string
+  type: "personal" | "emergencia"
+  relationship?: string
+}
+
 interface StudentFormData {
-  student_id: string
+  ku_id: string
   first_name: string
   last_name: string
-  email: string
-  phone: string
-  date_of_birth: string
-  gender: string
-  blood_type?: string
-  allergies?: string
-  emergency_contact_name?: string
-  emergency_contact_phone?: string
+  ku_email: string
+  dob: string
+  gender: "male" | "female" | "other"
+  department?: string
+  address?: string
+  program_id?: string
+  residence?: "interno" | "externo" | "aquinas"
+  contact_numbers: ContactNumberData[]
+  conditions: ConditionData[]
 }
 
 export function AddStudentForm({ onSuccess }: AddStudentFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm<StudentFormData>()
+
+  const { register, handleSubmit, setValue, control, formState: { errors } } = useForm<StudentFormData>({
+    defaultValues: {
+      contact_numbers: [{ phone_number: "", type: "personal" }],
+      conditions: [{ condition_name: "", condition_type: "", medications: [] }]
+    }
+  })
+
+  const { fields: contactFields, append: appendContact } = useFieldArray({
+    control,
+    name: "contact_numbers"
+  })
+
+  const { fields: conditionFields, append: appendCondition } = useFieldArray({
+    control,
+    name: "conditions"
+  })
 
   const onSubmit = async (data: StudentFormData) => {
     setIsLoading(true)
@@ -47,7 +81,7 @@ export function AddStudentForm({ onSuccess }: AddStudentFormProps) {
       await apiService.post("/students", data)
       onSuccess()
     } catch (err: any) {
-      setError(err.message || "Failed to add student")
+      setError(err.message || "Error al guardar el estudiante")
     } finally {
       setIsLoading(false)
     }
@@ -63,109 +97,205 @@ export function AddStudentForm({ onSuccess }: AddStudentFormProps) {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
+
+        {/* Student ID */}
         <div className="space-y-2">
-          <Label htmlFor="student_id">Student ID *</Label>
+          <Label htmlFor="ku_id">ID del Estudiante *</Label>
           <Input
-            id="student_id"
-            {...register("student_id", { required: "Student ID is required" })}
-            placeholder="e.g., STU2024001"
+            id="ku_id"
+            {...register("ku_id", { required: "El ID del estudiante es obligatorio" })}
+            placeholder="STU2024001"
           />
-          {errors.student_id && <p className="text-sm text-destructive">{errors.student_id.message}</p>}
+          {errors.ku_id && <p className="text-sm text-destructive">{errors.ku_id.message}</p>}
         </div>
 
+        {/* First Name */}
         <div className="space-y-2">
-          <Label htmlFor="email">Email *</Label>
+          <Label htmlFor="first_name">Nombre *</Label>
           <Input
-            id="email"
-            type="email"
-            {...register("email", { required: "Email is required" })}
-            placeholder="student@university.edu"
+            id="first_name"
+            {...register("first_name", { required: "El nombre es obligatorio" })}
+            placeholder="Juan"
           />
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="first_name">First Name *</Label>
-          <Input id="first_name" {...register("first_name", { required: "First name is required" })} />
           {errors.first_name && <p className="text-sm text-destructive">{errors.first_name.message}</p>}
         </div>
 
+        {/* Last Name */}
         <div className="space-y-2">
-          <Label htmlFor="last_name">Last Name *</Label>
-          <Input id="last_name" {...register("last_name", { required: "Last name is required" })} />
+          <Label htmlFor="last_name">Apellido *</Label>
+          <Input
+            id="last_name"
+            {...register("last_name", { required: "El apellido es obligatorio" })}
+            placeholder="Pérez"
+          />
           {errors.last_name && <p className="text-sm text-destructive">{errors.last_name.message}</p>}
         </div>
 
+        {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone *</Label>
-          <Input id="phone" {...register("phone", { required: "Phone is required" })} placeholder="+1234567890" />
-          {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="date_of_birth">Date of Birth *</Label>
+          <Label htmlFor="ku_email">Correo Electrónico *</Label>
           <Input
-            id="date_of_birth"
-            type="date"
-            {...register("date_of_birth", { required: "Date of birth is required" })}
+            id="ku_email"
+            type="email"
+            {...register("ku_email", { required: "El correo es obligatorio" })}
+            placeholder="estudiante@universidad.edu"
           />
-          {errors.date_of_birth && <p className="text-sm text-destructive">{errors.date_of_birth.message}</p>}
+          {errors.ku_email && <p className="text-sm text-destructive">{errors.ku_email.message}</p>}
         </div>
 
+        {/* DOB */}
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender *</Label>
+          <Label htmlFor="dob">Fecha de Nacimiento *</Label>
+          <Input
+            id="dob"
+            type="date"
+            {...register("dob", { required: "La fecha de nacimiento es obligatoria" })}
+          />
+          {errors.dob && <p className="text-sm text-destructive">{errors.dob.message}</p>}
+        </div>
+
+        {/* Gender */}
+        <div className="space-y-2">
+          <Label htmlFor="gender">Género *</Label>
           <Select onValueChange={(value) => setValue("gender", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona género" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="male">Masculino</SelectItem>
+              <SelectItem value="female">Femenino</SelectItem>
+              <SelectItem value="other">Otro</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* Department / City */}
         <div className="space-y-2">
-          <Label htmlFor="blood_type">Blood Type</Label>
-          <Select onValueChange={(value) => setValue("blood_type", value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select blood type" />
+          <Label htmlFor="department">Ciudad *</Label>
+          <Input
+            id="department"
+            {...register("department", { required: "La ciudad es obligatoria" })}
+            placeholder="Managua"
+          />
+          {errors.department && <p className="text-sm text-destructive">{errors.department.message}</p>}
+        </div>
+
+        {/* Address */}
+        <div className="col-span-2 space-y-2">
+          <Label htmlFor="address">Dirección</Label>
+          <Input
+            id="address"
+            {...register("address")}
+            placeholder="Barrio, calle, referencia..."
+          />
+        </div>
+
+        {/* Program */}
+        <div className="space-y-2">
+          <Label htmlFor="program_id">Programa Académico</Label>
+          <Input
+            id="program_id"
+            {...register("program_id")}
+            placeholder="Carrera, Inglés"
+          />
+        </div>
+
+        {/* Residence */}
+        <div className="space-y-2">
+          <Label htmlFor="residence">Residencia</Label>
+          <Select onValueChange={(value) => setValue("residence", value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona residencia" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="A+">A+</SelectItem>
-              <SelectItem value="A-">A-</SelectItem>
-              <SelectItem value="B+">B+</SelectItem>
-              <SelectItem value="B-">B-</SelectItem>
-              <SelectItem value="AB+">AB+</SelectItem>
-              <SelectItem value="AB-">AB-</SelectItem>
-              <SelectItem value="O+">O+</SelectItem>
-              <SelectItem value="O-">O-</SelectItem>
+              <SelectItem value="interno">Interno</SelectItem>
+              <SelectItem value="externo">Externo</SelectItem>
+              <SelectItem value="aquinas">Aquinas</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="allergies">Allergies</Label>
-        <Textarea id="allergies" {...register("allergies")} placeholder="List any known allergies..." rows={3} />
+      {/* Contact Numbers */}
+      <div>
+        <Label>Contactos</Label>
+        {contactFields.map((field, index) => (
+          <div key={field.id} className="grid grid-cols-3 gap-2 mb-2">
+            <Input
+              placeholder="Teléfono"
+              {...register(`contact_numbers.${index}.phone_number` as const, { required: true })}
+            />
+            <Select onValueChange={(v) => setValue(`contact_numbers.${index}.type`, v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal">Personal</SelectItem>
+                <SelectItem value="emergencia">Emergencia</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Parentesco (opcional)"
+              {...register(`contact_numbers.${index}.relationship` as const)}
+            />
+          </div>
+        ))}
+        <Button type="button" onClick={() => appendContact({ phone_number: "", type: "personal" })}>
+          Añadir contacto
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="emergency_contact_name">Emergency Contact Name</Label>
-          <Input id="emergency_contact_name" {...register("emergency_contact_name")} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="emergency_contact_phone">Emergency Contact Phone</Label>
-          <Input id="emergency_contact_phone" {...register("emergency_contact_phone")} />
-        </div>
+      {/* Conditions */}
+      <div>
+        <Label>Condiciones Médicas</Label>
+        {conditionFields.map((field, index) => (
+          <div key={field.id} className="border p-2 mb-2">
+            <Input
+              placeholder="Nombre de la condición"
+              {...register(`conditions.${index}.condition_name` as const, { required: true })}
+            />
+            <Select onValueChange={(v) => setValue(`conditions.${index}.condition_type`, v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alergia">Alergia</SelectItem>
+                <SelectItem value="enfermedad_cronica">Enfermedad Crónica</SelectItem>
+                <SelectItem value="lesion">Lesión</SelectItem>
+                <SelectItem value="salud_mental">Salud Mental</SelectItem>
+                <SelectItem value="cirugia">Cirugía</SelectItem>
+                <SelectItem value="otra">Otra</SelectItem>
+              </SelectContent>
+            </Select>
+            <Textarea
+              placeholder="Descripción"
+              {...register(`conditions.${index}.condition_description` as const)}
+            />
+            <Input
+              type="date"
+              placeholder="Fecha de inicio"
+              {...register(`conditions.${index}.start_date` as const)}
+            />
+            <Input
+              type="date"
+              placeholder="Fecha de fin"
+              {...register(`conditions.${index}.end_date` as const)}
+            />
+            <Textarea
+              placeholder="Notas adicionales"
+              {...register(`conditions.${index}.notes` as const)}
+            />
+            {/* TODO: Add medications if needed */}
+          </div>
+        ))}
+        <Button type="button" onClick={() => appendCondition({ condition_name: "", condition_type: "", medications: [] })}>
+          Añadir condición
+        </Button>
       </div>
 
       <div className="flex justify-end gap-3">
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Adding..." : "Add Student"}
+          {isLoading ? "Guardando..." : "Agregar Estudiante"}
         </Button>
       </div>
     </form>

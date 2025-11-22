@@ -85,6 +85,7 @@ export interface ChronicCondition {
   id: number
   student_id: number
   condition_name: string
+  condition_type: string
   diagnosed_date: string
   severity: "mild" | "moderate" | "severe"
   current_medications?: string
