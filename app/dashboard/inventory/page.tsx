@@ -90,19 +90,19 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-          <p className="text-muted-foreground">Track medications and medical supplies</p>
+          <h1 className="text-3xl font-bold tracking-tight">Manejo de Inventario</h1>
+          <p className="text-muted-foreground">Control de medicamentos e insumos médicos</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 size-4" />
-              Add Medication
+              Agregar Medicamento
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Medication</DialogTitle>
+              <DialogTitle>Agregar Nuevo Medicamento</DialogTitle>
             </DialogHeader>
             <AddMedicationForm onSuccess={handleMedicationAdded} />
           </DialogContent>
@@ -112,34 +112,34 @@ export default function InventoryPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">Low Stock Items</div>
+            <div className="text-sm font-medium">Artículos con poco inventario</div>
             <TrendingDown className="size-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{lowStockMedications.length}</div>
-            <p className="text-xs text-muted-foreground">Need reordering</p>
+            <p className="text-xs text-muted-foreground">Requiere reabastecimiento</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">Out of Stock</div>
+            <div className="text-sm font-medium">Agotado</div>
             <AlertTriangle className="size-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{outOfStockMedications.length}</div>
-            <p className="text-xs text-muted-foreground">Urgent restock needed</p>
+            <p className="text-xs text-muted-foreground">Reabastecimiento urgente</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="text-sm font-medium">Expiring Soon</div>
+            <div className="text-sm font-medium">Por vencer pronto</div>
             <AlertTriangle className="size-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{expiringMedications.length}</div>
-            <p className="text-xs text-muted-foreground">Within 90 days</p>
+            <p className="text-xs text-muted-foreground">Dentro de 20 días</p>
           </CardContent>
         </Card>
       </div>
@@ -148,17 +148,17 @@ export default function InventoryPage() {
         <Alert>
           <AlertTriangle className="size-4" />
           <AlertDescription>
-            You have {lowStockMedications.length + outOfStockMedications.length} items requiring attention and{" "}
-            {expiringMedications.length} medications expiring within 90 days.
+            Tienes {lowStockMedications.length + outOfStockMedications.length} artículo que requiere atención y{" "}
+            {expiringMedications.length} medicamento que expira dentro de 20 días.
           </AlertDescription>
         </Alert>
       )}
 
       <Tabs defaultValue="all">
         <TabsList>
-          <TabsTrigger value="all">All Medications</TabsTrigger>
-          <TabsTrigger value="low-stock">Low Stock</TabsTrigger>
-          <TabsTrigger value="controlled">Controlled</TabsTrigger>
+          <TabsTrigger value="all">Todos los medicamentos</TabsTrigger>
+          <TabsTrigger value="low-stock">Poco Inventario</TabsTrigger>
+          <TabsTrigger value="controlled">Controlado</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -194,13 +194,13 @@ export default function InventoryPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Dosage Form</TableHead>
-                        <TableHead>Strength</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Expiry Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>Nombre</TableHead>
+                        <TableHead>Forma de Dosis</TableHead>
+                        <TableHead>Concentración</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Fecha de Expiración</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

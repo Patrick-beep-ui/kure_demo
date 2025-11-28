@@ -12,7 +12,7 @@ export const mockUsers = {
   },
   doctor: {
     id: 2,
-    name: "Dr. Michael Chen",
+    name: "Dr. Pablo Garcia",
     email: "doctor@clinic.edu",
     role: "doctor" as const,
     created_at: "2024-01-01T00:00:00Z",
@@ -188,12 +188,13 @@ export const mockControlledDispensing = [
 ]
 
 export const mockDashboardStats = {
-  total_students: 1247,
+  total_students: 24,
   appointments_today: 12,
-  consultations_this_week: 45,
+  consultations_today: 25,
   low_stock_items: 3,
   expiring_medications: 2,
-  pending_appointments: 8,
+  pending_appointments: 8 ,
+  active_chronic_conditions: 10
 }
 
 export const mockNotifications = [

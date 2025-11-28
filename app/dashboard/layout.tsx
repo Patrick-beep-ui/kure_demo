@@ -42,12 +42,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Activity },
-  { name: "Students", href: "/dashboard/students", icon: Users },
-  { name: "Appointments", href: "/dashboard/appointments", icon: Calendar },
-  { name: "Consultations", href: "/dashboard/consultations", icon: Stethoscope },
-  { name: "Inventory", href: "/dashboard/inventory", icon: Package },
-  { name: "Chronic Conditions", href: "/dashboard/chronic-conditions", icon: Heart },
-  { name: "Controlled Medications", href: "/dashboard/controlled-medications", icon: Pill },
+  { name: "Estudiantes", href: "/dashboard/students", icon: Users },
+  { name: "Citas", href: "/dashboard/appointments", icon: Calendar },
+  { name: "Consultas", href: "/dashboard/consultations", icon: Stethoscope },
+  { name: "Inventario", href: "/dashboard/inventory", icon: Package },
+  { name: "Padecimientos", href: "/dashboard/chronic-conditions", icon: Heart },
+  { name: "Medicina Controlada", href: "/dashboard/controlled-medications", icon: Pill },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
 ]
 
@@ -89,7 +89,7 @@ export default function DashboardLayout({
                 <Activity className="size-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">University Clinic</span>
+                <span className="text-sm font-semibold">KURE Clinic</span>
                 <span className="text-xs text-muted-foreground">Management System</span>
               </div>
             </div>
@@ -123,7 +123,7 @@ export default function DashboardLayout({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-left">
-                    <span className="text-sm font-medium">{user.name}</span>
+                    <span className="text-sm font-medium">{/*user.name*/} Dr. Pablo Garcia</span>
                     <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
                   </div>
                 </Button>
