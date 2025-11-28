@@ -47,7 +47,7 @@ export default function LoginPage() {
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10">
             <Activity className="size-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-semibold">University Clinic</CardTitle>
+          <CardTitle className="text-2xl font-semibold">KURE</CardTitle>
           <CardDescription>Sign in to access the clinic management system</CardDescription>
         </CardHeader>
         <CardContent>
@@ -64,7 +64,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="staff@university.edu"
+                placeholder="staff@keiseruniversity.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

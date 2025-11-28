@@ -99,7 +99,7 @@ export default function StudentDetailPage() {
             </div>
             <Button>
               <Edit className="mr-2 size-4" />
-              Edit Profile
+              Editar Perfil
             </Button>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function StudentDetailPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Contact Information</CardTitle>
+            <CardTitle className="text-base">Información de Contacto</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-3">
@@ -129,11 +129,11 @@ export default function StudentDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Medical Information</CardTitle>
+            <CardTitle className="text-base">Información de Programa</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Program</span>
+              <span className="text-sm text-muted-foreground">Programa</span>
               <Badge variant="outline">{student.program?.program_name}</Badge>
             </div>
           </CardContent>
@@ -141,11 +141,11 @@ export default function StudentDetailPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Emergency Contact</CardTitle>
+            <CardTitle className="text-base">Contactos de Emergencia</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <p className="text-sm font-medium">{emergencyPhone || "Not provided"}</p>
+              <p className="text-sm font-medium">{emergencyPhone || "No registrado"}</p>
               <p className="text-sm text-muted-foreground">{student.emergency_contact_phone || "-"}</p>
             </div>
           </CardContent>
@@ -155,9 +155,9 @@ export default function StudentDetailPage() {
       {/* Tabs */}
       <Tabs defaultValue="consultations" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="consultations">Consultations</TabsTrigger>
-          <TabsTrigger value="chronic-conditions">Chronic Conditions</TabsTrigger>
-          <TabsTrigger value="medications">Medications</TabsTrigger>
+          <TabsTrigger value="consultations">Consultas</TabsTrigger>
+          <TabsTrigger value="chronic-conditions">Padecimientos</TabsTrigger>
+          <TabsTrigger value="medications">Medicacion</TabsTrigger>
         </TabsList>
 
         {/* Consultations */}

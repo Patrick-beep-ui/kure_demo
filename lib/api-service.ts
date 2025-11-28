@@ -130,6 +130,27 @@ class ApiService {
     })
     return this.handleResponse<T>(response)
   }
+
+  async getBinary(endpoint: string): Promise<Blob> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: "GET",
+        headers: {
+          Accept: "*/*",   // allow images
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch binary data");
+      }
+  
+      return await response.blob();   // return raw binary
+    } catch (err) {
+      console.error("Binary fetch error:", err);
+      throw err;
+    }
+  }
+  
 }
 
 export const apiService = new ApiService(API_BASE_URL)
@@ -262,6 +283,13 @@ export const clinicApi = {
 
   // Dashboard Stats
   getDashboardStats: () => (USE_MOCK_DATA ? mockApi.getDashboardStats() : apiService.get("/dashboard/stats")),
+
+  // DSL
+  validateRule: (rule: string) =>
+  apiService.post("/rules/validate", { rule }),
+
+  getASTImage: () =>
+    apiService.getBinary("/rules/ast"),
 
   // Reports & Export
   exportData: async (request: ExportDataRequest) => {
