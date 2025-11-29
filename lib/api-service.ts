@@ -285,8 +285,46 @@ export const clinicApi = {
   getDashboardStats: () => (USE_MOCK_DATA ? mockApi.getDashboardStats() : apiService.get("/dashboard/stats")),
 
   // DSL
-  validateRule: (rule: string) =>
-  apiService.post("/rules/validate", { rule }),
+  validateRule: async (rule: string) => {
+    const response = await fetch(`${API_BASE_URL}/rules/validate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ rule }),
+    });
+  
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error("Invalid JSON from server");
+    }
+  
+    // Return **both status and JSON** so the frontend can decide
+    return { status: response.status, ok: data.ok, ...data };
+  },
+  
+  saveRule: async (rule: string) => {
+    const response = await fetch(`${API_BASE_URL}/rules/save`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ rule }),
+    });
+  
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error("Invalid JSON from server");
+    }
+  
+    return { status: response.status, ok: data.ok, ...data };
+  },
 
   getASTImage: () =>
     apiService.getBinary("/rules/ast"),
