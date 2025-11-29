@@ -37,18 +37,26 @@ export default function DSLIDE() {
     setIsLoading(true);
     log("Validating rule...");
     const content = files[activeIndex].content;
-
+  
     try {
       const res = await clinicApi.validateRule(content);
+      console.log('Validation response:', res);
+  
       if (!res.ok) {
-        log(`Validation failed: ${res.error || JSON.stringify(res)}`);
+        // Check for the specific "Medication not found" error
+        if (res.error === "Medication not found in database" || res.meta?.error === "Medication not found in database") {
+          const missing = res.missing || res.meta?.missing || [];
+          log(`Validation failed: ${res.error || res.meta?.error}. Missing: ${missing.join(', ')}`);
+        } else {
+          log(`Validation failed: ${res.error || res.meta?.error || JSON.stringify(res)}`);
+        }
         setIsLoading(false);
         return;
       }
-
+  
       log('Validation succeeded');
       setAstJson(res || null);
-
+  
       // fetch AST image (optional)
       try {
         const blob = await clinicApi.getASTImage();
@@ -59,9 +67,8 @@ export default function DSLIDE() {
         log("No AST image available");
       }
       
-
     } catch (err: any) {
-      log('Error validating rule: ' + err.message);
+      log('Network error validating rule: ' + err.message);
     }
     setIsLoading(false);
   }
@@ -69,22 +76,40 @@ export default function DSLIDE() {
   async function saveRule() {
     log('Saving rule to server...');
     const content = files[activeIndex].content;
+  
     try {
-      const res = await fetch('/api/rules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rule: content })
-      });
-      const data = await res.json();
+      const res = await clinicApi.saveRule(content);
+      console.log('Save response:', res);
+  
       if (!res.ok) {
-        log('Save failed: ' + (data.error || JSON.stringify(data)));
+        // Check for missing medications specifically
+        if (res.error === "Medication not found in database" || res.meta?.error === "Medication not found in database") {
+          const missing = res.missing || res.meta?.missing || [];
+          log(`Save failed: ${res.error || res.meta?.error}. Missing: ${missing.join(', ')}`);
+        } else {
+          log(`Save failed: ${res.error || res.meta?.error || JSON.stringify(res)}`);
+        }
         return;
       }
-      log('Rule saved');
+  
+      log('Rule validated and saved successfully');
+      setAstJson(res.ast || null);
+  
+      // fetch AST image
+      try {
+        const blob = await clinicApi.getASTImage();
+        const url = URL.createObjectURL(blob);
+        setAstUrl(url);
+        log("AST image retrieved");
+      } catch (e) {
+        log("No AST image available");
+      }
+  
     } catch (err: any) {
-      log('Save error: ' + err.message);
+      log('Network error saving rule: ' + err.message);
     }
   }
+  
 
   function newFile() {
     const name = `rule_${files.length + 1}.txt`;
