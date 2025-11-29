@@ -244,6 +244,12 @@ export const clinicApi = {
   getMedications: (params?: { search?: string; controlled?: boolean }) =>
     apiService.get(`/medications?${new URLSearchParams(params as any)}`),
 
+  getSuggestedMedications: (params?: { reason?: string; }) =>
+    apiService.get(`/medications/suggestions?${new URLSearchParams(params as any)}`),
+
+  getMedicationStatus: () => 
+    apiService.get("/medications/status"),
+
   // Inventory
 
   getInventory: (params?: { search?: string; status?: string }) =>
