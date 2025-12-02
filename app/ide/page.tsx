@@ -86,7 +86,11 @@ export default function DSLIDE() {
         if (res.error === "Medication not found in database" || res.meta?.error === "Medication not found in database") {
           const missing = res.missing || res.meta?.missing || [];
           log(`Save failed: ${res.error || res.meta?.error}. Missing: ${missing.join(', ')}`);
-        } else {
+        } 
+        else if (res.error === "Condition not found in database" || res.meta?.error === "Condition not found in database") {
+          log(`Save failed: ${res.error || res.meta?.error}`);
+        }
+        else {
           log(`Save failed: ${res.error || res.meta?.error || JSON.stringify(res)}`);
         }
         return;

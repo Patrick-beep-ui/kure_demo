@@ -280,6 +280,9 @@ export const clinicApi = {
   updateChronicCondition: (id: number, data: any) =>
     USE_MOCK_DATA ? mockApi.updateChronicCondition(id, data) : apiService.put(`/chronic-conditions/${id}`, data),
 
+  getSuggestedCondMedications: (params?: { condition?: string; }) =>
+    apiService.get(`/conditions/suggestions?${new URLSearchParams(params as any)}`),
+
   // Controlled Medications
   getControlledMedications: () =>
     USE_MOCK_DATA ? mockApi.getControlledMedications() : apiService.get("/controlled-medications"),
