@@ -15,6 +15,7 @@ import Image from "next/image"
 import { AddConsultationModal } from "@/components/consultations/add-consultation-modal"
 import { AddChronicConditionModal } from "@/components/chronic-conditions/add-chronic-condition-modal"
 import { DispenseMedicationModal } from "@/components/medications/dispense-medication-modal"
+import { ScheduleAppointmentModal } from "@/components/appointments/schedule-appointment-modal"
 
 export default function StudentDetailPage() {
   const params = useParams()
@@ -25,6 +26,7 @@ export default function StudentDetailPage() {
   const [showConsultationModal, setShowConsultationModal] = useState(false)
   const [showConditionModal, setShowConditionModal] = useState(false)
   const [showMedicationModal, setShowMedicationModal] = useState(false)
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
 
   useEffect(() => {
     if (params.id) fetchStudent()
@@ -158,6 +160,7 @@ export default function StudentDetailPage() {
           <TabsTrigger value="consultations">Consultas</TabsTrigger>
           <TabsTrigger value="chronic-conditions">Padecimientos</TabsTrigger>
           <TabsTrigger value="medications">Medicacion</TabsTrigger>
+          <TabsTrigger value="citas">Citas</TabsTrigger>
         </TabsList>
 
         {/* Consultations */}
@@ -292,7 +295,61 @@ export default function StudentDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+      {/* Citas */}
+      <TabsContent value="citas" className="space-y-4">
+        {student.conditions.length === 0 ? (
+          <p className="py-8 text-center text-muted-foreground">
+            Ninguna cita agendada para este estudiante
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <Button
+              size="sm"
+              onClick={() => setShowAppointmentModal(true)}
+            >
+              <Plus className="mr-2 size-4" />
+              Nueva Cita
+            </Button>
+            {student.conditions.map((condition) => (
+              <Card key={condition.id} className="p-4">
+                {/* Header: Condition Name & Type */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-semibold">{condition.condition.condition_name}</p>
+                    <Badge variant="outline" className="capitalize">
+                      {condition.condition.condition_type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Start: {new Date(condition.start_date).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* Description */}
+                {condition.condition.condition_description && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Description:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {condition.condition.condition_description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {condition.notes && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Notes:</p>
+                    <p className="text-sm text-muted-foreground">{condition.notes}</p>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+      </TabsContent>
       </Tabs>
+      
 
       {student && (
         <>
@@ -312,6 +369,13 @@ export default function StudentDetailPage() {
             studentId={student.id}
             isOpen={showMedicationModal}
             onOpenChange={setShowMedicationModal}
+            onSuccess={fetchStudent}
+          />
+
+          <ScheduleAppointmentModal
+            studentId={student.id}
+            isOpen={showAppointmentModal}
+            onOpenChange={setShowAppointmentModal}
             onSuccess={fetchStudent}
           />
         </>
