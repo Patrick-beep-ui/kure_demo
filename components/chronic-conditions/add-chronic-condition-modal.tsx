@@ -31,6 +31,8 @@ import {
   CommandList,
 } from "@/components/ui/command"
 
+import { useDebounce } from 'use-debounce'; 
+
 interface AddChronicConditionModalProps {
   studentId: number
   isOpen: boolean
@@ -68,6 +70,7 @@ export function AddChronicConditionModal({
   const [error, setError] = useState("")
    const [medications, setMedications] = useState<MedicationEntry[]>([]);
   const [conditions, setConditions] = useState<Condition[]>([]);
+  const [suggestedMeds, setSuggestedMedications] = useState<MedicationEntry[]>([]);
 
     useEffect(() => {
       const getMedications = async () => {
@@ -109,6 +112,43 @@ export function AddChronicConditionModal({
     watch,
     reset,
   } = useForm<ChronicConditionFormData>()
+
+  const condition = watch("condition_name");
+
+  const [debouncedCondition] = useDebounce(condition, 500);
+
+  useEffect(() => {
+    if (!debouncedCondition) return;
+
+    const getSuggestedMedications = async () => {
+      try {
+        const response = await clinicApi.getSuggestedCondMedications({condition: debouncedCondition});
+        const suggestions = response.suggestions;
+        console.log("Fetched suggested medications:", suggestions);
+
+        if (suggestions.length === 0) return;
+
+        setValue("medications", []);
+
+        suggestions.forEach((suggestion: MedicationEntry) => {
+          appendMedication({
+            medication_id: suggestion.medication_id,
+            duration_amount: 1,
+            schedule: "",
+            duration_type: "prn",
+            duration_unit: "dias",
+          });
+        });
+
+        setSuggestedMedications(suggestions);
+      }
+      catch(err) {
+        console.error("Failed to fetch suggested medications:", err);
+      }
+    }
+
+    getSuggestedMedications();
+  }, [debouncedCondition])
 
     const { fields: medicationFields, append: appendMedication, remove: removeMedication } =
       useFieldArray({
@@ -233,12 +273,15 @@ export function AddChronicConditionModal({
                             className="w-full justify-between mt-1"
                         >
                             {watch(`medications.${index}.medication_id`)
-                            ? medications.find(
-                                (m) =>
-                                    String(m.id) ===
-                                    String(watch(`medications.${index}.medication_id`))
-                                )?.name
-                            : "Selecciona medicamento"}
+                                ? (() => {
+                                      const med = medications.find(
+                                          (m) =>
+                                              String(m.id) ===
+                                              String(watch(`medications.${index}.medication_id`))
+                                      );
+                                      return med ? `${med.name} - ${med.dosage}` : "Selecciona medicamento";
+                                  })()
+                                : "Selecciona medicamento"}
                         </Button>
                         </PopoverTrigger>
 
