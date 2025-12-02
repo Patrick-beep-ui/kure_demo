@@ -214,6 +214,10 @@ export const clinicApi = {
     apiService.get("/programs"),
 
   // Appointments
+
+  getDoctors: () => 
+    apiService.get("/appointments/doctors"),
+
   getAppointments: (params?: { status?: string; date?: string }) =>
     USE_MOCK_DATA
       ? mockApi.getAppointments(params)
