@@ -224,7 +224,7 @@ export const clinicApi = {
       : apiService.get(`/appointments?${new URLSearchParams(params as any)}`),
 
   createAppointment: (data: any) =>
-    USE_MOCK_DATA ? mockApi.createAppointment(data) : apiService.post("/appointments", data),
+    apiService.post("/appointments", data),
 
   updateAppointment: (id: number, data: any) =>
     USE_MOCK_DATA ? mockApi.updateAppointment(id, data) : apiService.put(`/appointments/${id}`, data),
